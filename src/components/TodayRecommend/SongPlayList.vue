@@ -43,12 +43,12 @@ export default {
     }
   },
   methods: {
-    ...mapMutations(['playSong', 'setVolume']),
+    ...mapMutations(['playSong', 'setVolume', 'setHistoryPlayList']),
     ...mapActions(['getMusicUrl']),
     handleGoToPlayPage (id, name, author) {
       const storage = MusicUtils.getLocalStorageSongPlayList('historyPlayList')
       storage.push(name)
-      MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
+      this.setHistoryPlayList(storage)
       this.$router.push({
         path: 'play',
         query: { id, name, author }

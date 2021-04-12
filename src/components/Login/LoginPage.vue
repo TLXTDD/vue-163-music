@@ -63,19 +63,37 @@ export default {
       }
       const login = await PostLogin(username, password)
       const loginData = login.data
-      const userData = loginData.profile
-      console.log(loginData)
+      const userData = {
+        user: loginData.profile.nickname,
+        backgroundUrl: loginData.profile.backgroundUrl,
+        avatarUrl: loginData.profile.avatarUrl,
+        follows: loginData.profile.follows,
+        followeds: loginData.profile.followeds
+      }
+      const cookiesData = this.cookiesStl(loginData.cookie)
       if (loginData.code === 200) {
         this.$toast('登录成功')
-        this.$router.push({
-          path: '/video',
-          query: { userData }
-        })
+        location.reload()
       }
       Cookies.set('token', loginData.token, { expires: 1 })
-      Cookies.set('cookie', loginData.cookie, { expires: 1 })
+      // Cookies.set('cookie', loginData.cookie, { expires: 1 })
       Cookies.set('userId', loginData.profile.userId, { expires: 1 })
-      Cookies.set('avatarUrl', loginData.profile.avatarUrl, { expires: 1 })
+      // Cookies.set('avatarUrl', loginData.profile.avatarUrl, { expires: 1 })
+      Cookies.set('userdata', userData, { expires: 1 })
+      Cookies.set('MUSIC_U', cookiesData.MUSIC_U, { expires: 1 })
+      Cookies.set('NMTID', cookiesData.NMTID, { expires: 1 })
+      Cookies.set('__csrf', cookiesData.__csrf, { expires: 1 })
+      Cookies.set('__remember_me', cookiesData.__remember_me, { expires: 1 })
+    },
+    cookiesStl (cookies) {
+      const cookiesData = {}
+      const cookiesArr = cookies.split(';;')
+      for (let i = 0; i < cookiesArr.length; i++) {
+        const cookiesKey = cookiesArr[i].split('=')
+        const cookiesValue = cookiesKey[1].split(';')
+        cookiesData[cookiesKey[0]] = cookiesValue[0]
+      }
+      return cookiesData
     }
   }
 }

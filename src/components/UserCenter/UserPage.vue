@@ -11,14 +11,14 @@
             width="100%"
             height="100%"
             fit="cover"
-            :src="userData.avatarUrl"
+            :src="userData.avatarUrl || usetAvatar"
           />
         </div>
-        <p class="user-nickname">{{ isLogin || userData.nickname }}</p>
+        <p class="user-nickname">{{ userData.user || isLogin }}</p>
         <p class="user-size">
-          <span>关注：{{ isLogin || userData.follows }}</span>
+          <span>关注：{{ userData.follows || isLogin }}</span>
           <span>|</span>
-          <span>粉丝：{{ isLogin || userData.followeds}}</span>
+          <span>粉丝：{{ userData.followeds===0?'0':userData.followeds || isLogin }}</span>
         </p>
         <p class="user-level">
           <van-tag round ><i>Lv.7</i></van-tag>
@@ -26,32 +26,48 @@
       </div>
     </div>
     <button @click="handleLogout">退出</button>
-    <LoginPage />
+    <LoginPage v-if="!userData"/>
   </div>
 </template>
 
 <script>
 import { getLogout } from '../../common/api'
 import LoginPage from '../Login/LoginPage'
+import Cookies from 'js-cookie'
 export default {
   name: 'UserPage',
   data () {
     return {
-      userData: {},
-      isLogin: '未登录'
+      userData: '',
+      isLogin: '未登录',
+      usetAvatar: 'https://p3.music.126.net/SUeqMM8HOIpHv9Nhl9qt9w==/109951165647004069.jpg'
     }
   },
   components: {
     LoginPage
   },
   created () {
-    const { userData } = this.$route.query
-    this.userData = userData
+    const userData = Cookies.getJSON('userdata')
+    if (userData) {
+      this.userData = userData
+    }
   },
   methods: {
     async handleLogout () {
       const data = await getLogout()
-      this.$toast(data.data.code)
+      if (data.data.code === 200) {
+        Cookies.remove('token')
+        // Cookies.set('cookie', loginData.cookie, { expires: 1 })
+        Cookies.remove('userId')
+        // Cookies.set('avatarUrl', loginData.profile.avatarUrl, { expires: 1 })
+        Cookies.remove('userdata')
+        Cookies.remove('MUSIC_U')
+        Cookies.remove('NMTID')
+        Cookies.remove('__csrf')
+        Cookies.remove('__remember_me')
+        this.$toast('退出登录')
+        location.reload()
+      }
     }
   }
 }

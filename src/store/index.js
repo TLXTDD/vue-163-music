@@ -75,6 +75,14 @@ export default new Vuex.Store({
     },
     setPlayList (state, playLoad) {
       state.playlist = playLoad
+    },
+    setHistoryPlayList (state, storage) {
+      if (storage.length >= 8) {
+        for (let i = 1; i <= storage.length - 8; i++) {
+          storage.shift()
+        }
+      }
+      MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
     }
   },
   actions: {

@@ -11,6 +11,9 @@ export default {
     const data = JSON.stringify(payload)
     window.localStorage.setItem(playlist, data)
   },
+  removeLocalStorageSongPlayList (data) {
+    window.localStorage.removeItem(data)
+  },
   timeFormat (t) {
     t = parseInt(t)
     // const h = zero(Math.floor(t % 3600))

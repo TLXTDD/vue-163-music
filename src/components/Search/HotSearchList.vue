@@ -2,6 +2,8 @@
   <div class="HotSearchList">
     <div class="chip-storage">
       <p class="storage">历史记录</p>
+      <van-tag style="float: right" @click="handleCleanUp" v-if="storage">清空记录
+      </van-tag>
       <div>
         <van-tag
           v-for="(item, index) in storage"
@@ -43,6 +45,7 @@
 import { getSearchHotDetail } from '../../common/api'
 import MusicUtils from '../../common/MusicUtils'
 import Bus from '../../common/Bus'
+import { mapMutations } from 'vuex'
 export default {
   name: 'HotSearchList',
   data () {
@@ -62,14 +65,19 @@ export default {
     }
   },
   methods: {
+    ...mapMutations(['setHistoryPlayList']),
     handleGoToPlayPage (name) {
       const storage = MusicUtils.getLocalStorageSongPlayList('historyPlayList')
       storage.push(name)
-      MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
+      this.setHistoryPlayList(storage)
       Bus.$emit('handleKeywords', name)
     },
     handleClick (name) {
       Bus.$emit('handleKeywords', name)
+    },
+    handleCleanUp () {
+      MusicUtils.removeLocalStorageSongPlayList('historyPlayList')
+      location.reload()
     }
 
   }
