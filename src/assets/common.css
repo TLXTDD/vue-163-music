@@ -1,0 +1,44 @@
+.Recommend .van-sticky .van-nav-bar > div > div > i ,
+.Recommend .van-sticky .van-nav-bar > div > div > span{
+    color: #fff !important;
+}
+.Recommend > div > .van-sticky {
+    background: linear-gradient( 135deg, rgb(142, 132, 133) 0%, rgb(230, 132, 110) 100% ) !important;
+}
+.SongSheetPage .van-sticky .van-nav-bar > div > div > i ,
+.SongSheetPage .van-sticky .van-nav-bar > div > div > span,
+.RankPage .van-sticky .van-nav-bar > div > div > i ,
+.RankPage .van-sticky .van-nav-bar > div > div > span,
+.DjPage .van-sticky .van-nav-bar > div > div > i ,
+.DjPage .van-sticky .van-nav-bar > div > div > span{
+    color: #000 !important;
+}
+.SongSheetPage > div > .van-sticky {
+    background: linear-gradient( 135deg, rgb(142, 132, 133) 0%, rgb(230, 132, 110) 100% ) !important;
+}
+.RankPage > div > .van-sticky > .van-nav-bar {
+    background-color: #eee
+}
+
+.SearchPage .van-sticky{
+    height: 92px;
+}
+
+.UserPage .van-sticky > i {
+    margin-left: 30px;
+    margin-top: 30px;
+    color: #fff;
+    font-size: 40px;
+}
+
+.HotSearchList .van-tag--default{
+    padding: 5px 25px;
+}
+
+
+.UserPage .van-sticky > i {
+    color: #fff;
+    font-size: 40px;
+    margin-left: 30px;
+    margin-top: 30px;
+}
