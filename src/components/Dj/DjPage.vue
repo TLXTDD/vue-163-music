@@ -13,18 +13,23 @@
 
     <SongSheetCategory/>
     <div class="dj-list">
-      <div @click="handleGoToPlayPage(item.program.mainSong.id, item.program.name, item.program.dj.nickname)" class="dj-list-item" v-for="(item,index) in djTopLists" :key="index">
+      <div
+          v-for="(item,index) in djTopLists"
+          :key="index"
+          @click="handleGoToPlayPage(item.id, item.rcmdtext || item.name, true)"
+          class="dj-list-item"
+      >
         <div class="dj-pic">
           <van-image
             width="100%"
             height="100%"
             lazy-load
             fit="cover"
-            :src="item.program.coverUrl"
+            :src="item.picUrl"
           />
         </div>
         <div class="dj-list-info">
-          <p class="dj-list-title">{{item.program.name}}</p>
+          <p class="dj-list-title">{{ item.rcmdtext || item.name }}</p>
           <div class="dj-list-user">
             <div class="dj-list-user-pic">
               <van-image
@@ -33,15 +38,15 @@
                 width="100%"
                 height="100%"
                 lazy-load
-                :src="item.program.dj.avatarUrl"
+                :src="item.dj.avatarUrl"
               />
             </div>
             <div class="dj-list-user-name">
-              {{ item.program.dj.nickname }}
+              {{ item.dj.nickname }}
             </div>
             <p>
               <i class="iconfont icon-redian"></i>
-              {{ item.score }}
+              {{ item.subCount }}
             </p>
           </div>
         </div>
@@ -64,16 +69,16 @@ export default {
     onClickLeft () {
       this.$router.back()
     },
-    handleGoToPlayPage (id, name, author) {
+    handleGoToPlayPage (id, name, isDj) {
       this.$router.push({
-        path: '/play',
-        query: { id, name, author }
+        path: '/recommend',
+        query: { id, name, isDj }
       })
     }
   },
   async created () {
     const djTopLists = await getHomeDjTopList()
-    this.djTopLists = djTopLists.data.data.list
+    this.djTopLists = djTopLists.data.djRadios
   }
 }
 </script>
