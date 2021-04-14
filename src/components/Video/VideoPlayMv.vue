@@ -22,7 +22,7 @@ export default {
   async created () {
     try {
       const video = await getVideoCatePlayUrl(this.vid)
-      this.video = video.data.urls[0]
+      this.video = video.data.urls.length && video.data.urls[0]
     } catch (e) {
       console.log(e)
     }

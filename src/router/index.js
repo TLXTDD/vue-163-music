@@ -22,7 +22,9 @@ import {
   Field,
   Icon,
   Slider,
-  Button, Toast, Circle, Form
+  Button, Toast, Circle, Form,
+  Popup,
+  Col, Row
 } from 'vant'
 
 Vue.use(Swipe).use(SwipeItem)
@@ -41,6 +43,8 @@ Vue.use(Swipe).use(SwipeItem)
   .use(Toast)
   .use(Circle)
   .use(Form)
+  .use(Popup)
+  .use(Col).use(Row)
 
 // 全局组件
 Vue.component('VideoPlay', VideoPlay)

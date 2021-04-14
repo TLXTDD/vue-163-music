@@ -20,6 +20,7 @@
 <script>
 // 时间车
 import Bus from '../../common/Bus'
+import MusicUtils from '../../common/MusicUtils'
 export default {
   name: 'HomeHeader',
   data () {
@@ -38,7 +39,18 @@ export default {
     handleClick (index) {
       if (index === 0) this.headColor = 'dark'
       else this.headColor = ''
+
       Bus.$emit('switchPage', index)
+
+      if (index === 0) {
+        this.setScrollTop()
+        MusicUtils.scrControl(0)
+      } else if (index === 1) {
+        MusicUtils.scrControl(1)
+      }
+    },
+    setScrollTop () {
+      document.documentElement.scrollTop = document.body.scrollTop = 0
     }
   }
 }

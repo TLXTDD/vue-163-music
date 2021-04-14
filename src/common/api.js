@@ -62,7 +62,12 @@ export function getHomeDjRecommend () {
 //  电台
 export function getHomeDjTopList () {
   // eslint-disable-next-line no-undef
-  return axios.get('/dj/program/toplist/hours?limit=30')
+  return axios.get('/dj/hot')
+}
+// 电台歌单详情
+export function getHomeDjProgramList (id) {
+  // eslint-disable-next-line no-undef
+  return axios.get(`dj/program?rid=${id}&limit=40`)
 }
 //  热搜榜
 export function getSearchHotDetail () {

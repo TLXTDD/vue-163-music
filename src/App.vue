@@ -1,10 +1,12 @@
 <template>
   <div id="app">
     <router-view/>
-    <BottomBarPlay
-      :isShowBottomBarPlayBtn="isShowBottomBarPlayBtn"
-      :rate="rate"
-    />
+    <div class="BottomBar">
+      <BottomBarPlay
+          :isShowBottomBarPlayBtn="isShowBottomBarPlayBtn"
+          :rate="rate"
+      />
+    </div>
   </div>
 </template>
 
@@ -36,6 +38,10 @@ export default {
   }
   li{
     list-style-type:none;
+  }
+  .BottomBar{
+    width: 100%;
+    height: 90px;
   }
   @import "./assets/common.css";
 </style>

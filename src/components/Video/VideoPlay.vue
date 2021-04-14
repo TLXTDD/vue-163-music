@@ -24,7 +24,7 @@
               :src="item.data.creator.avatarUrl"
             />
             <span>
-            {{ item.data.creator.nickname }}
+            {{ item.data.creator.nickname || '' }}
           </span>
           </div>
           <div class="link">
@@ -55,10 +55,25 @@ export default {
       videoList: []
     }
   },
+  // methods: {
+  //   handleAvatarUrl (pic, img) {
+  //     console.log(pic)
+  //     console.log(img)
+  //     return 'https://dss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=251289958,1860898046&fm=26&gp=0.jpg'
+  //   },
+  //   handleIsEmptyJsons (v) {
+  //     // console.log(JSON.stringify(v) == '{}')
+  //     return JSON.stringify(v) != '{}'
+  //   }
+  // },
   props: ['id'],
   async created () {
-    const videoList = await getVideoCatePlayList(this.id)
-    this.videoList = videoList.data.datas
+    try {
+      const videoList = await getVideoCatePlayList(this.id)
+      this.videoList = videoList.data.datas
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 </script>

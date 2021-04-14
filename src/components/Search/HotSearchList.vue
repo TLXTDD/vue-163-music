@@ -2,7 +2,7 @@
   <div class="HotSearchList">
     <div class="chip-storage">
       <p class="storage">历史记录</p>
-      <van-tag style="float: right" @click="handleCleanUp" v-if="storage">清空记录
+      <van-tag style="float: right" @click="handleCleanUp">清空记录
       </van-tag>
       <div>
         <van-tag
@@ -29,7 +29,8 @@
         <div class="hot-search-info">
           <span :class="['order',index<3?'active':'']">{{ index+1 }}</span>
           <div class="hot-song">
-            <div class="hot-song-name" :class="index<3?'fontW':''">{{ item.searchWord }}
+            <div class="hot-song-name" :class="index<3?'fontW':''">
+              {{ item.searchWord }}
               <van-icon :name="item.iconUrl" />
             </div>
             <p class="hot-song-des">{{ item.content }}</p>

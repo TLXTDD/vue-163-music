@@ -9,9 +9,9 @@ import axios from 'axios'
 // axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 const config = {
-  baseURL: 'http://h5sm.com:8088/',
+  baseURL: 'http://api.aim58.cn/',
   timeout: 6 * 1000, // Timeout
-  withCredentials: false // Check cross-site Access-Control
+  withCredentials: true // Check cross-site Access-Control
 }
 
 const _axios = axios.create(config)

@@ -8,7 +8,6 @@
       :initial-swipe="swipeIndex"
       :loop="false"
       :show-indicators="false"
-      :touchable="false"
     >
       <van-swipe-item>
         <UserPage />

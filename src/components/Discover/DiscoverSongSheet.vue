@@ -45,9 +45,12 @@ export default {
   async created () {
     this.handleSetWidth()
     window.addEventListener('resize', this.handleSetWidth)
-
-    const songList = await getPersonalized()
-    this.songList = songList.data.result
+    try {
+      const songList = await getPersonalized()
+      this.songList = songList.data.result
+    } catch (e) {
+      console.log(e)
+    }
   },
   methods: {
     handleSetWidth () {

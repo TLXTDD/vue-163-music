@@ -17,7 +17,10 @@
           <div class="songInfo">
             <img width="100%" :src="item.coverImgUrl" alt="">
             <p class="info">
-              <span class="num">{{item.playCount | handleNumberFormat}}</span>
+              <span class="num">
+                <i class="iconfont icon icon-bofang"></i>
+                {{item.playCount | handleNumberFormat}}
+              </span>
             </p>
           </div>
           <p class="songTitle">

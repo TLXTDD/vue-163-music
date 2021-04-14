@@ -9,23 +9,26 @@
         </div>
       </div>
     </div>
-    <div class="play-container">
+    <div class="play-container" @click="handleToggleLyric">
       <!--圆盘-->
-      <div class="play-disc play-disc-rotate">
-        <div class="disc">
+      <div class="play-disc">
+        <div class="needle">
+          <img :class="isPlayingState?'':'rotate'" width="100%" height="100%" src="../../assets/img/needle.png" alt="">
+        </div>
+        <div :class="['disc',isPlayingState? 'play-disc-rotate' : '']">
           <div class="play-song-cover">
             <van-image
               round
               width="100%"
               height="100%"
               fit="cover"
-              src="https://img01.yzcdn.cn/vant/cat.jpeg"
+              :src="pic"
             />
           </div>
         </div>
       </div>
       <!--歌词-->
-      <div v-if="true" class="lyric-wrap">
+      <div v-if="isShowLyric" class="lyric-wrap">
         <ul
           :style="{transform:`translate3d(0,-${getLine}px,0)`}"
         >
@@ -55,54 +58,71 @@
         <span class="duration-time">{{ duration | handleTimeFormat }}</span>
       </div>
       <div class="play-btn">
-        <i :class="['iconfont','icon-danquxunhuan']"></i>
-        <i :class="['iconfont','icon-xunhuan']"></i>
-        <i :class="['iconfont','icon-shangyiqu']"></i>
-        <i :class="['iconfont','icon-zanting']" @click="handlePause" v-if="pause"></i>
-        <i :class="['iconfont','icon-weibiaoti--']" @click="handlePlaySong" v-else-if="!pause"></i>
-        <i :class="['iconfont','icon-xiayiqu']"></i>
-        <i :class="['iconfont','icon-bofangliebiao']"></i>
+        <i :class="['iconfont', modeIcon]" @click="handlePlayMode"></i>
+        <i :class="['iconfont','icon-shangyiqu']" @click="handlePrev"></i>
+        <i :class="['iconfont','icon-zanting']" @click="handlePause" v-if="isPlayPause"></i>
+        <i :class="['iconfont','icon-weibiaoti--']" @click="handlePlaySong" v-else-if="!isPlayPause"></i>
+        <i :class="['iconfont','icon-xiayiqu']" @click="handleNext"></i>
+        <i :class="['iconfont','icon-bofangliebiao']" @click="handleBottomSheet"></i>
       </div>
     </div>
+    <van-popup
+        v-model="show"
+        position="bottom"
+        :style="{ height: '70%'}"
+        round
+        class="bottompopup"
+    >
+      <BottomSheetPlayList></BottomSheetPlayList>
+    </van-popup>
   </div>
 </template>
 
 <script>
-import { mapState, mapActions, mapMutations } from 'vuex'
-// import MusicUtils from '../../common/MusicUtils'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
+import MusicUtils from '../../common/MusicUtils'
 import FilterMixins from '../../common/FilterMixins'
 import { Toast } from 'vant'
+import BottomSheetPlayList from './BottomSheetPlayList'
 
 export default {
   name: 'PlayPage',
   mixins: [FilterMixins],
   data () {
     return {
-      pause: true,
       playList: [],
       songLyricList: [],
       line: 0,
       top: 0,
       name: '',
-      author: ''
+      author: '',
+      show: false,
+      pic: 'https://img.yzcdn.cn/vant/cat.jpeg'
     }
   },
+  components: {
+    BottomSheetPlayList
+  },
   async created () {
-    const { id, name, author } = this.$route.query
-    this.name = name
-    this.author = author
-    const r = await this.getMusicUrl(id)
-    if (!r) {
-      Toast('此歌曲无版权，无法播放')
-      this.$router.back()
-      return
-    }
-    await this.getMusicLyric(id)
-    if (this.songLyric !== '') {
-      await this.handleLyricStr(this.songLyric)
-      await this.setVolume()
-      await this.playSong()
-    }
+    // const { id, name, author } = this.$route.query
+    // this.name = name
+    // this.author = author
+    // const r = await this.getMusicUrl(id)
+    // if (!r) {
+    //   Toast('此歌曲无版权，无法播放')
+    //   this.$router.back()
+    //   return
+    // }
+    // await this.getMusicLyric(id)
+    // if (this.songLyric !== '') {
+    //   await this.handleLyricStr(this.songLyric)
+    //   await this.setVolume()
+    //   await this.playSong()
+    // }
+    this.handleEnterOperation()
+  },
+  beforeUpdate () {
+    this.handleEnterOperation()
   },
   mounted () {
     // if (this.songLyric !== '') {
@@ -110,8 +130,84 @@ export default {
     // }
   },
   methods: {
-    ...mapMutations(['pauseSong', 'playSong', 'setVolume', 'setDuration', 'btnPlaySong']),
+    ...mapMutations([
+      'pauseSong',
+      'playSong',
+      'setVolume',
+      'setDuration',
+      'setIsShowLyric',
+      'setIsPlayingState',
+      'setModeNum',
+      'setModeIcon',
+      'setCurrentPlaySongIndex'
+    ]),
     ...mapActions(['getMusicUrl', 'getMusicLyric']),
+    handleEnterOperation () {
+      const { name, author, pic, songLyric } = MusicUtils.getLocalStorageSongPlayList()[0]
+      // songLyric 当在播放页面刷新后 也能播放
+      if (this.getSongLyric || songLyric) {
+        this.handleLyricStr(this.getSongLyric || songLyric)
+      }
+      this.name = name
+      this.author = author
+      this.pic = pic
+    },
+    async handlePrevNextOperation (n) {
+      // console.log('下一曲')
+      // console.log(this.playerlist)
+      // console.log(this.currentPlaySongIndex)
+      const currentIndex = MusicUtils.getLocalStorageSongPlayList('currentPlaySongIndex') || this.currentPlaySongIndex
+      // console.log(typeof currentIndex)
+      let playerlist = (this.playerlist.length && this.playerlist) || MusicUtils.getLocalStorageSongPlayList('playerlist')
+
+      const index = (currentIndex + n < 0 ? playerlist.length - 1 : currentIndex + n) % playerlist.length
+      // console.log(index)
+      // console.log(playerlist)
+      await this.setCurrentPlaySongIndex(index)
+      playerlist = MusicUtils.getLocalStorageSongPlayList('playerlist') || this.playerlist
+      const { id, name, ar, artists, al, album } = playerlist[(index)]
+      // al picUrl
+
+      const r = await this.getMusicUrl({
+        id,
+        name,
+        author: ar ? ar[0].name : artists[0].name,
+        pic: al ? al.picUrl : album.artist.img1v1Url
+      })
+
+      if (!r) {
+        Toast('此歌曲无版权，无法播放')
+        this.setCurrentPlaySongIndex(index)
+        return
+      }
+      await this.getMusicLyric(id)
+      await this.setVolume()
+      await this.playSong()
+      this.handleEnterOperation()
+
+      const storage = MusicUtils.getLocalStorageSongPlayList('historyPlayList')
+      storage.push(name)
+      MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
+    },
+    handlePrev () {
+      Toast('上一曲')
+      this.handlePrevNextOperation(-1)
+    },
+    async handleNext () {
+      Toast('下一曲')
+      this.handlePrevNextOperation(1)
+    },
+    handlePlayMode () {
+      let index = this.modeNum
+      index = index + 1
+      index = index % 3
+      this.setModeNum(index)
+      this.setModeIcon(index)
+      Toast(this.modeAliIcon[index].name)
+    },
+    handleToggleLyric () {
+      this.setIsShowLyric()
+    },
     handleLyricStr (lyric) {
       const lrcArr = lyric.split('[')
       const songLyricList = []
@@ -133,15 +229,17 @@ export default {
       this.audioEle.currentTime = value
     },
     handlePlaySong () {
-      this.btnPlaySong()
-      this.pause = true
+      // this.btnPlaySong()
+      this.playSong()
     },
     handlePause () {
       this.pauseSong()
-      this.pause = false
     },
     handleBack () {
       this.$router.back()
+    },
+    handleBottomSheet () {
+      this.show = !this.show
     }
   },
   watch: {
@@ -158,7 +256,21 @@ export default {
     }
   },
   computed: {
-    ...mapState(['songLyric', 'currentTime', 'duration', 'audioEle']),
+    ...mapState([
+      'songLyric',
+      'currentTime',
+      'duration',
+      'audioEle',
+      'isShowLyric',
+      'isPlayingState',
+      'isPlayPause',
+      'modeNum',
+      'modeIcon',
+      'modeAliIcon',
+      'currentPlaySongIndex',
+      'playerlist'
+    ]),
+    ...mapGetters(['getSongLyric']),
     getLine () {
       if (this.line > 5) {
         return (this.line - 5) * 29
@@ -169,6 +281,36 @@ export default {
 </script>
 
 <style lang="less" scoped>
+.PlayPage{
+  position: relative;
+  z-index: 1002;
+
+  /deep/ .bottompopup{
+    z-index: 3000;
+    font-size: 12px;
+    text-align: center;
+  }
+}
+.needle{
+  width: 273px;
+  height: 402px;
+  /*border: 1px yellow solid;*/
+  position: absolute;
+  z-index: 99;
+  left: 50%;
+  top: -100px;
+
+  img{
+    /*border: 1px slateblue solid;*/
+    transform: scale(0.5);
+    transition: 1s;
+    transform-origin: 44px 37px;
+  }
+
+  img.rotate{
+    transform: scale(0.5) rotate(-30deg);
+  }
+}
 @keyframes myRotate {
   from {
     transform: rotate(0deg);
@@ -183,7 +325,6 @@ export default {
 }
 
 .PlayPage {
-  z-index: 999;
   position: relative;
   display: flex;
   height: 100vh;
@@ -254,6 +395,7 @@ export default {
     }
 
     .lyric-wrap {
+      z-index: 1000;
       position: absolute;
       width: 100%;
       height: 100%;

@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { getMusicUrl, getMusicLyric, getHomeSongSheetsDetail } from '../common/api'
+import { getMusicUrl, getMusicLyric, getHomeSongSheetsDetail, getHomeDjProgramList } from '../common/api'
 import MusicUtils from '../common/MusicUtils'
 
 Vue.use(Vuex)
@@ -37,11 +37,34 @@ export default new Vuex.Store({
     // 当前播放音乐时间戳
     currentTime: 0,
     duration: 0,
-    translateY: 0
+    translateY: 0,
+    playerList: [],
+    isShowLyric: false,
+    isPlayingState: false,
+    isPlayPause: false,
+    modeNum: 2,
+    modeIcon: 'icon-xunhuan',
+    modeAliIcon: [
+      {
+        icon: 'icon-danquxunhuan',
+        name: '单曲循环'
+      },
+      {
+        icon: 'icon-suiji',
+        name: '随机播放'
+      },
+      {
+        icon: 'icon-xunhuan',
+        name: '循环播放'
+      }
+    ]
   },
   getters: {
     getPlaylist (state) {
       return state.playlist
+    },
+    getSongLyric (state) {
+      return state.songLyric
     }
   },
   mutations: {
@@ -50,19 +73,20 @@ export default new Vuex.Store({
     },
     playSong (state) {
       state.audioEle.volume = 0.1
-      state.audioEle.playbackRate = 1.5
-      const res = MusicUtils.getLocalStorageSongPlayList()
-      state.audioEle.src = res[state.currentPlaySongIndex].url
+      // state.audioEle.playbackRate = 1.5
+      state.isPlayingState = true
+      state.isPlayPause = true
+      // const res = MusicUtils.getLocalStorageSongPlayList()
+      // state.audioEle.src = res[state.currentPlaySongIndex].url
       state.audioEle.play()
     },
     playbackRate (state, scale = 3) {
       state.audioEle.playbackRate = scale
     },
-    btnPlaySong (state) {
-      state.audioEle.play()
-    },
     pauseSong (state) {
       state.audioEle.pause()
+      state.isPlayingState = false
+      state.isPlayPause = false
     },
     setCurrentTime (state, playLoad) {
       state.currentTime = playLoad
@@ -83,21 +107,50 @@ export default new Vuex.Store({
         }
       }
       MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
+    },
+    setPlayerList (state, playLoad) {
+      state.currentPlaySongIndex = playLoad.index
+      state.playerlist = playLoad.list
+      // 防止刷新
+      MusicUtils.setLocalStorageSongPlayList(playLoad.list, 'playerlist')
+      MusicUtils.setLocalStorageSongPlayList(playLoad.index, 'currentPlaySongIndex')
+    },
+    setIsShowLyric (state) {
+      state.isShowLyric = !state.isShowLyric
+    },
+    setIsPlayingState (state) {
+      state.isPlayingState = !state.isPlayingState
+    },
+    setModeNum (state, playLoad) {
+      state.modeNum = playLoad
+    },
+    setModeIcon (state, playLoad) {
+      state.modeIcon = state.modeAliIcon[playLoad].icon
+    },
+    setCurrentPlaySongIndex (state, payload) {
+      state.currentPlaySongIndex = payload
+      // 防止刷新
+      MusicUtils.setLocalStorageSongPlayList(payload, 'currentPlaySongIndex')
     }
   },
   actions: {
-    async getMusicUrl ({ commit, getters, state }, id) {
+    async getMusicUrl ({ commit, getters, state }, playLoad) {
       try {
+        const { id, name, author, pic } = playLoad
         const res = await getMusicUrl(id)
         const data = res.data.data
-        if (data.length && data[state.currentPlaySongIndex].url) {
+        if (data.length && data[0].url) {
+          state.audioEle.src = data[0].url
+          data[0].name = name
+          data[0].author = author
+          data[0].pic = pic
           MusicUtils.setLocalStorageSongPlayList(data)
           return true
         } else {
           return false
         }
       } catch (e) {
-        console.log('请检查接口')
+        console.log('请检查接口', e)
       }
     },
     async getMusicLyric ({ commit, state }, id) {
@@ -108,13 +161,21 @@ export default new Vuex.Store({
         } else {
           state.songLyric = '[00:00.000] 纯音乐 无歌词 '
         }
+        const data = MusicUtils.getLocalStorageSongPlayList()
+        data[0].songLyric = state.songLyric
+        MusicUtils.setLocalStorageSongPlayList(data)
       } catch (e) {
         console.log('歌词获取失败')
       }
     },
-    async getSongsPlayList ({ commit, state }, id) {
-      const res = await getHomeSongSheetsDetail(id)
-      commit('setPlayList', res.data.playlist.tracks)
+    async getSongsPlayList ({ commit, state }, objs) {
+      if (objs.isDj) {
+        const res = await getHomeDjProgramList(objs.id)
+        commit('setPlayList', res.data.programs)
+      } else {
+        const res = await getHomeSongSheetsDetail(objs.id)
+        commit('setPlayList', res.data.playlist.tracks)
+      }
     }
   },
   modules: {}

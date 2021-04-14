@@ -33,10 +33,10 @@ export default {
   },
   async created () {
     try {
-      const { id, name } = this.$route.query
+      const { id, name, isDj } = this.$route.query
       if (name) this.name = name
       if (id) {
-        await this.getSongsPlayList(id)
+        await this.getSongsPlayList({ id, isDj })
         this.songLists = this.getPlaylist
       } else {
         const songLists = await getToDayRecommend()

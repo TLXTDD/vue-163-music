@@ -1,5 +1,5 @@
 <template>
-  <div class="BottomBarPlay" >
+  <div class="BottomBarPlay" @click="handleGoToPlayPage">
     <div class="songInfo">
       <div class="picUrl">
         <van-image
@@ -8,12 +8,12 @@
           width="100%"
           height="100%"
           lazy-load
-          src="https://img.yzcdn.cn/vant/cat.jpeg"
+          :src="authorPic"
         />
       </div>
       <div class="song">
-        <p class="name">追梦人</p>
-        <p class="author">凤飞飞 - 浮世情怀</p>
+        <p class="name">{{ name }}</p>
+        <p class="author">{{ author }} - {{ name }}</p>
       </div>
     </div>
 
@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import { mapState, mapMutations } from 'vuex'
+import { mapState, mapMutations, mapActions, mapGetters } from 'vuex'
 import MusicUtils from '../../common/MusicUtils'
 import { Toast } from 'vant'
 export default {
@@ -58,19 +58,53 @@ export default {
     this.handleSetSize()
     window.addEventListener('resize', this.handleSetSize)
     const storage = MusicUtils.getLocalStorageSongPlayList()
-    // console.log( storage )
     this.playUrl = storage.length ? storage[0].url : ''
   },
   mounted () {
     const audio = this.$refs.audioEle
+    const oldThis = this
     this.audio = audio
     this.setAudioEle(audio)
+    window.setInterval(function () {
+      const storage = MusicUtils.getLocalStorageSongPlayList()
+      if (storage.length) {
+        oldThis.name = storage[0].name
+        oldThis.author = storage[0].author
+        oldThis.authorPic = storage[0].pic
+      }
+    }, 3000)
   },
   computed: {
-    ...mapState(['audioEle'])
+    ...mapState([
+      'songLyric',
+      'currentTime',
+      'duration',
+      'audioEle',
+      'isShowLyric',
+      'isPlayingState',
+      'modeNum',
+      'modeIcon',
+      'modeAliIcon',
+      'currentPlaySongIndex',
+      'playerlist'
+    ]),
+    ...mapGetters(['getSongLyric'])
   },
   methods: {
-    ...mapMutations(['setAudioEle', 'setCurrentTime', 'setDuration']),
+    ...mapMutations([
+      'setAudioEle',
+      'setCurrentTime',
+      'pauseSong',
+      'playSong',
+      'setVolume',
+      'setDuration',
+      'setIsShowLyric',
+      'setIsPlayingState',
+      'setModeNum',
+      'setModeIcon',
+      'setCurrentPlaySongIndex'
+    ]),
+    ...mapActions(['getMusicUrl', 'getMusicLyric']),
     handleTimeupdate (e) {
       // this.setCurrentTime(MusicUtils.timeFormat(e.target.currentTime))
       this.setCurrentTime(e.target.currentTime)
@@ -78,18 +112,99 @@ export default {
     handlePlay (e) {
       Toast('开始播放')
       // 注意 开始播放后 获取总时间
-      setTimeout(() => {
+      clearInterval(this.timer)
+      this.timer = setInterval(() => {
+        if (!isNaN(e.target.duration)) {
+          clearInterval(this.timer)
+        }
         this.setDuration(e.target.duration)
-      }, 100)
+      }, 500)
     },
     handleEnded () {
       Toast('播放结束啦！！')
+      // 0 单曲循环
+      // 1 随机播放
+      // 2 顺序播放
+      switch (this.modeNum) {
+        case 0:
+          this.handlePrevNextOperation(0)
+          break
+        case 1:
+          this.handlePrevNextOperation(this.playerlist.length * Math.random() | 0)
+          break
+        case 2:
+          this.handlePrevNextOperation(1)
+          break
+      }
     },
     handleSetSize () {
       const html = document.querySelector('html')
       const width = html.getBoundingClientRect().width
       const size = 48 * width / 750
       this.size = size + 'px'
+    },
+    handleGoToPlayPage () {
+      this.$router.push('/play')
+    },
+    async handlePrevNextOperation (n) {
+      // console.log('下一曲')
+      // console.log(this.playerlist)
+      // console.log(this.currentPlaySongIndex)
+      const currentIndex = MusicUtils.getLocalStorageSongPlayList('currentPlaySongIndex') || this.currentPlaySongIndex
+      const playerlist = MusicUtils.getLocalStorageSongPlayList('playerlist') || this.playerlist
+      const index = (currentIndex + n) % playerlist.length
+      await this.setCurrentPlaySongIndex(index)
+      const { id, name, ar, artists, al, album } = playerlist[index]
+      // al picUrl
+
+      const r = await this.getMusicUrl({
+        id,
+        name,
+        author: ar ? ar[0].name : artists[0].name,
+        pic: al ? al.picUrl : album.artist.img1v1Url
+      })
+
+      if (!r) {
+        Toast('此歌曲无版权，无法播放')
+        this.setCurrentPlaySongIndex((index + n) % playerlist.length)
+        this.handlePrevNextOperation(playerlist.length * Math.random() | 0)
+        return
+      }
+      await this.getMusicLyric(id)
+      await this.setVolume()
+      await this.playSong()
+      this.handleEnterOperation()
+
+      const storage = MusicUtils.getLocalStorageSongPlayList('historyPlayList')
+      storage.push(name)
+      MusicUtils.setLocalStorageSongPlayList(storage, 'historyPlayList')
+    },
+    handleEnterOperation () {
+      const { name, author, pic, songLyric } = MusicUtils.getLocalStorageSongPlayList()[0]
+      // songLyric 当在播放页面刷新后 也能播放
+      this.handleLyricStr(this.getSongLyric || songLyric)
+      this.name = name
+      this.author = author
+      this.pic = pic
+    },
+    handleLyricStr (lyric) {
+      const lrcArr = lyric.split('[')
+      // console.log(lrcArr)
+      const songLyricList = []
+      for (let i = 0; i < lrcArr.length; i++) {
+        const arr = lrcArr[i].split(']')
+        const text = arr[1]
+
+        const time = arr[0].split('.')
+        const timer = time[0].split(':')
+        const ms = timer[0] * 60 + timer[1] * 1
+        // console.log(ms)
+        if (text && !isNaN(ms)) {
+          songLyricList.push({ text, ms })
+        }
+      }
+      this.songLyricList = songLyricList
+      // console.log(songLyricList)
     }
   },
   data () {
@@ -108,7 +223,11 @@ export default {
         '0%': '#3fecff',
         '100%': '#6149f6'
       },
-      playUrl: ''
+      playUrl: '',
+      timer: null,
+      author: '',
+      name: '请播放歌曲',
+      authorPic: 'https://img01.yzcdn.cn/vant/cat.jpeg'
     }
   }
 }

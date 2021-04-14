@@ -15,7 +15,7 @@
             :src="item.coverImgUrl"
           />
           <p class="info">
-            <i></i>
+            <i class="iconfont icon icon-bofang"></i>
             <span class="num">{{item.playCount | handleNumberFormat}}</span>
           </p>
         </div>

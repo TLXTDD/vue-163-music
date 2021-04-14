@@ -4,7 +4,18 @@
 
 数据接口感谢Binaryify大神提供 https://github.com/Binaryify/NeteaseCloudMusicApi
 
-## Project setup
+## 技术栈
+
+1. Vue全家桶(vue,vue-router,vuex)
+2. axios(http)
+3. vant组件库
+4. postcss-pxtorem - amfe-flexible
+   - amfe-flexible
+     - 根据屏幕动态改变根元素font-size
+   - postcss-pxtorem
+     - 自动把代码中px转为rem
+
+## 部署
 
 ```
 yarn install
@@ -27,22 +38,6 @@ yarn build
 ```
 yarn lint
 ```
-
-### Customize configuration
-
-See [Configuration Reference](https://cli.vuejs.org/config/).
-
-## 一、 ui组件库
-
-### 1. vant组件库
-
-## 二、 h5适配插件
-
-- postcss-pxtorem - amfe-flexible
-  - amfe-flexible
-    - 根据屏幕动态改变根元素font-size
-  - postcss-pxtorem
-    - 自动把代码中px转为rem
 
 ## 三、 axios
 
