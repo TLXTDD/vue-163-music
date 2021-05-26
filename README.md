@@ -4,6 +4,8 @@
 
 数据接口感谢Binaryify大神提供 https://github.com/Binaryify/NeteaseCloudMusicApi
 
+项目演示地址:http://vue.aim58.cn
+
 ## 技术栈
 
 1. Vue全家桶(vue,vue-router,vuex)
